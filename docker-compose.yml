@@ -1,0 +1,87 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: taskqueue
+      POSTGRES_PASSWORD: taskqueue
+      POSTGRES_DB: taskqueue
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U taskqueue"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  migrate:
+    image: migrate/migrate
+    depends_on:
+      postgres: { condition: service_healthy }
+    volumes:
+      - ./migrations:/migrations
+    command: [
+      "-path", "/migrations",
+      "-database", "postgres://taskqueue:taskqueue@postgres:5432/taskqueue?sslmode=disable",
+      "up"
+    ]
+
+  producer:
+    build:
+      context: .
+      dockerfile: docker/producer.Dockerfile
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    environment:
+      - DB_DSN=postgres://taskqueue:taskqueue@postgres:5432/taskqueue?sslmode=disable
+      - REDIS_ADDR=redis:6379
+    ports:
+      - "8080:8080"
+
+  worker-default:
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    environment:
+      - DB_DSN=postgres://taskqueue:taskqueue@postgres:5432/taskqueue?sslmode=disable
+      - REDIS_ADDR=redis:6379
+      - WORKER_CONCURRENCY=10
+      - QUEUE_NAME=default
+    deploy:
+      replicas: 2
+
+  worker-email:
+    build:
+      context: .
+      dockerfile: docker/worker.Dockerfile
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+    environment:
+      - DB_DSN=postgres://taskqueue:taskqueue@postgres:5432/taskqueue?sslmode=disable
+      - REDIS_ADDR=redis:6379
+      - WORKER_CONCURRENCY=10
+      - QUEUE_NAME=email
+    deploy:
+      replicas: 2
+
+volumes:
+  pgdata:
