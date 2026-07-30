@@ -3,39 +3,56 @@ package api
 import (
 	"net/http"
 	"strings"
+
+	"github.com/shyxur/distributed-task-queue/internal/ports"
+	"go.uber.org/zap"
 )
 
-// NewRouter builds a minimal stdlib-only mux (no external router dep needed
-// for this surface area). Swap for chi/gin later without touching handlers.
-func NewRouter(h *Handler) http.Handler {
-	mux := http.NewServeMux()
+func NewRouter(h *Handler, limiter ports.RateLimiter, logger *zap.Logger) http.Handler {
+    mux := http.NewServeMux()
 
 	mux.HandleFunc("GET /health", h.Health)
 	mux.HandleFunc("POST /tasks", h.CreateTask)
 
-	mux.HandleFunc("GET /tasks/", func(w http.ResponseWriter, r *http.Request) {
-		id := strings.TrimPrefix(r.URL.Path, "/tasks/")
-		if strings.HasSuffix(id, "/requeue") {
-			return // handled below
+	mux.HandleFunc("/tasks/", func(w http.ResponseWriter, r *http.Request) {
+		path := strings.TrimPrefix(r.URL.Path, "/tasks/")
+		if path == "" {
+			http.NotFound(w, r)
+			return
 		}
-		h.GetTask(w, r, id)
+
+		parts := strings.Split(path, "/")
+		if len(parts) == 1 {
+			if r.Method == http.MethodGet {
+				h.GetTask(w, r, parts[0])
+				return
+			}
+		} else if len(parts) == 2 && parts[1] == "requeue" {
+			if r.Method == http.MethodPost {
+				h.RequeueDeadLetter(w, r, parts[0])
+				return
+			}
+		}
+
+		http.NotFound(w, r)
 	})
-	mux.HandleFunc("POST /tasks/", func(w http.ResponseWriter, r *http.Request) {
-		id := strings.TrimPrefix(r.URL.Path, "/tasks/")
-		id = strings.TrimSuffix(id, "/requeue")
-		h.RequeueDeadLetter(w, r, id)
-	})
-	mux.HandleFunc("GET /queues/", func(w http.ResponseWriter, r *http.Request) {
+
+	mux.HandleFunc("/queues/", func(w http.ResponseWriter, r *http.Request) {
 		path := strings.TrimPrefix(r.URL.Path, "/queues/")
-		queue := strings.TrimSuffix(path, "/dlq")
-		h.ListDeadLetter(w, r, queue)
+		parts := strings.Split(path, "/")
+
+		if len(parts) == 2 && parts[1] == "dlq" && r.Method == http.MethodGet {
+			h.ListDeadLetter(w, r, parts[0])
+			return
+		}
+
+		http.NotFound(w, r)
 	})
 
-	return loggingMiddleware(mux)
-}
+	var handler http.Handler = mux
+	handler = RateLimitMiddleware(limiter)(handler)
+	handler = LoggingMiddleware(logger)(handler)
+	handler = RecoveryMiddleware(logger)(handler)
 
-func loggingMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		next.ServeHTTP(w, r)
-	})
+	return handler
 }

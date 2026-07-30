@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourorg/taskqueue/internal/domain"
+	"github.com/shyxur/distributed-task-queue/internal/domain"
 )
 
 // taskRow mirrors the tasks table for scanning; separates DB shape from

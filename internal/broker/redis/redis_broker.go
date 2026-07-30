@@ -8,8 +8,8 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
-	"github.com/yourorg/taskqueue/internal/domain"
-	"github.com/yourorg/taskqueue/internal/ports"
+	"github.com/shyxur/distributed-task-queue/internal/domain"
+	"github.com/shyxur/distributed-task-queue/internal/ports"
 )
 
 // Key layout:
@@ -133,9 +133,6 @@ func (b *RedisBroker) Close() error {
 	return b.client.Close()
 }
 
-// Client exposes the underlying redis client so other components (e.g.
-// TokenBucketLimiter) can share the same connection pool instead of
-// opening a second one.
 func (b *RedisBroker) Client() *redis.Client {
 	return b.client
 }

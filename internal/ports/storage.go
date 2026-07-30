@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourorg/taskqueue/internal/domain"
+	"github.com/shyxur/distributed-task-queue/internal/domain"
 )
 
 // Storage abstracts durable persistence of task state (Postgres, etc.).

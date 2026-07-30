@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/yourorg/taskqueue/internal/domain"
+	"github.com/shyxur/distributed-task-queue/internal/domain"
 )
 
 // HandlerRegistry maps queue name -> JobHandler. Concurrency-safe for

@@ -10,8 +10,8 @@ import (
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/yourorg/taskqueue/internal/domain"
-	"github.com/yourorg/taskqueue/internal/ports"
+	"github.com/shyxur/distributed-task-queue/internal/domain"
+	"github.com/shyxur/distributed-task-queue/internal/ports"
 )
 
 type PostgresStorage struct {

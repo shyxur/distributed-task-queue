@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/redis/go-redis/v9"
-	"github.com/yourorg/taskqueue/internal/ports"
+	"github.com/shyxur/distributed-task-queue/internal/ports"
 )
 
 // TokenBucketLimiter implements per-worker rate limiting via a Lua script

@@ -6,9 +6,9 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourorg/taskqueue/internal/domain"
-	"github.com/yourorg/taskqueue/internal/engine"
-	"github.com/yourorg/taskqueue/internal/ports"
+	"github.com/shyxur/distributed-task-queue/internal/domain"
+	"github.com/shyxur/distributed-task-queue/internal/engine"
+	"github.com/shyxur/distributed-task-queue/internal/ports"
 	"go.uber.org/zap"
 )
 

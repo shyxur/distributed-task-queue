@@ -7,19 +7,19 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/yourorg/taskqueue/internal/domain"
-	"github.com/yourorg/taskqueue/internal/ports"
+	"github.com/shyxur/distributed-task-queue/internal/domain"
+	"github.com/shyxur/distributed-task-queue/internal/ports"
 	"go.uber.org/zap"
 )
 
 // Engine owns retry/backoff/timeout/DLQ decision logic. It is broker- and
 // storage-agnostic beyond the ports interfaces — worker pool drives it.
 type Engine struct {
-	storage      ports.Storage
-	broker       ports.Broker
-	retryPolicy  domain.RetryPolicy
-	taskTimeout  time.Duration // per-task execution deadline
-	logger       *zap.Logger
+	storage     ports.Storage
+	broker      ports.Broker
+	retryPolicy domain.RetryPolicy
+	taskTimeout time.Duration // per-task execution deadline
+	logger      *zap.Logger
 }
 
 func NewEngine(storage ports.Storage, broker ports.Broker, retryPolicy domain.RetryPolicy, taskTimeout time.Duration, logger *zap.Logger) *Engine {
@@ -122,9 +122,7 @@ func (e *Engine) handleFailure(ctx context.Context, task *domain.Task, execErr e
 }
 
 // ReclaimLoop periodically scans for crashed-worker tasks (visibility
-// expired) and re-enqueues them on the broker. Should run once per process
-// per queue (or leader-elected in multi-instance setups to avoid redundant scans —
-// ReclaimExpired's SKIP LOCKED makes concurrent calls safe either way).
+// expired) and re-enqueues them on the broker.
 func (e *Engine) ReclaimLoop(ctx context.Context, queue string, interval time.Duration) {
 	ticker := time.NewTicker(interval)
 	defer ticker.Stop()

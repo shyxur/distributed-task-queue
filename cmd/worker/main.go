@@ -6,12 +6,12 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
-	redisbroker "github.com/yourorg/taskqueue/internal/broker/redis"
-	"github.com/yourorg/taskqueue/internal/config"
-	"github.com/yourorg/taskqueue/internal/domain"
-	"github.com/yourorg/taskqueue/internal/engine"
-	"github.com/yourorg/taskqueue/internal/storage/postgres"
-	"github.com/yourorg/taskqueue/internal/worker"
+	redisbroker "github.com/shyxur/distributed-task-queue/internal/broker/redis"
+	"github.com/shyxur/distributed-task-queue/internal/config"
+	"github.com/shyxur/distributed-task-queue/internal/domain"
+	"github.com/shyxur/distributed-task-queue/internal/engine"
+	"github.com/shyxur/distributed-task-queue/internal/storage/postgres"
+	"github.com/shyxur/distributed-task-queue/internal/worker"
 	"go.uber.org/zap"
 )
 
