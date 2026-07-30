@@ -84,7 +84,7 @@ Additional resilience mechanisms (see [Production Features](#production-features
 ## Quick Start
 
 ```bash
-git clone <your-repo-url>
+git clone <https://github.com/shyxur/distributed-task-queue>
 cd taskqueue
 go mod tidy
 go build ./...
